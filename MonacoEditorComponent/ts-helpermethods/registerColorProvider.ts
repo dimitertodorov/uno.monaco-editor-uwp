@@ -6,6 +6,7 @@ var registerColorProvider = function (languageId) {
         provideColorPresentations: function (model, colorInfo, token) {
             return callParentEventAsync("ProvideColorPresentations" + languageId, [JSON.stringify(colorInfo)]).then(result => {
                 if (result) {
+                    console.log(result);
                     return JSON.parse(result);
                 }
             });
@@ -13,6 +14,7 @@ var registerColorProvider = function (languageId) {
         provideDocumentColors: function (model, token) {
             return callParentEventAsync("ProvideDocumentColors" + languageId, []).then(result => {
                 if (result) {
+                    console.log(result);
                     return JSON.parse(result);
                 }
             });

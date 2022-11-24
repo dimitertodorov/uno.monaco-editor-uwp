@@ -6,12 +6,31 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Windows.Data.Json;
-using Windows.UI.Xaml.Controls;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Uno.Foundation;
 
 namespace Monaco.Extensions
 {
     internal static class ICodeEditorPresenterExtensions
     {
+        
+        /// <summary>
+        /// Run javascript in the context of a DOM element.
+        /// This one is available in the scope as "element".
+        /// </summary>
+        /// <remarks>
+        /// Will work even if the element is not yet loaded into the DOM.
+        /// </remarks>
+        public static string ExecuteJavascriptInElement(this UIElement element, string jsCode)
+        {
+            var js = @$"
+(function(element) {{
+return {jsCode}
+}})(Uno.UI.WindowManager.current.getView({element.GetHtmlId()}));
+";
+            return WebAssemblyRuntime.InvokeJS(js);
+        }
         public static async Task RunScriptAsync(
             this ICodeEditorPresenter _view,
             string script,

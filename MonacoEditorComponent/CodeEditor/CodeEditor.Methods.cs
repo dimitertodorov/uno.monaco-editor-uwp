@@ -4,6 +4,8 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using Windows.Foundation;
+using Microsoft.Extensions.Logging;
+using Uno.Extensions;
 
 #if !NETSTANDARD2_0
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -127,7 +129,9 @@ namespace Monaco
         public IAsyncOperation<string> AddCommandAsync(int keybinding, CommandHandler handler, string context)
         {
             var name = "Command" + keybinding;
-            _parentAccessor.RegisterActionWithParameters(name, (parameters) => 
+            this.Log().LogInformation("KB: {Keybinding} {Context}", keybinding, context);
+            this.Log().LogInformation("KB: {Keybinding}", handler?.Method?.Name);
+            _parentAccessor?.RegisterActionWithParameters(name, (parameters) => 
             {
                 if (parameters != null && parameters.Length > 0)
                 {

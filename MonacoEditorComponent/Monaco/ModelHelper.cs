@@ -239,7 +239,7 @@ namespace Monaco.Editor
         {
             if (_editor.TryGetTarget(out CodeEditor editor))
             {
-                return editor.SendScriptAsync<string>("model.getValue();").AsAsyncOperation();
+                return editor.SendScriptAsync<string>("model.getValue()").AsAsyncOperation();
             }
 
             return null;

@@ -70,6 +70,7 @@
                 <Button x:Name="HideButton" Content="Hide" Click="HideButton_Click"/>
                 <Button x:Name="DetachButton" Content="Detach" Click="DetachButton_Click"/>
                 <Button x:Name="RemoveButton" Content="Remove" Click="RemoveButton_Click"/>
+<Button Content="Do Something Else" Click="ButtonDimiTest_Click" />  
                 <CheckBox x:Name="AllowWeb" IsChecked="True">Allow Opening Uris</CheckBox>
                 <ItemsControl.ItemContainerStyle>
                     <Style TargetType="FrameworkElement">

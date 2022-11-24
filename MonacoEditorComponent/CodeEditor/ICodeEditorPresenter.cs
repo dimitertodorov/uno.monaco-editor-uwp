@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.Foundation;
-using Windows.UI;
+using Microsoft.UI;
 using Windows.UI.Core;
-using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Media;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.Web.WebView2.Core;
 
 namespace Monaco
 {
@@ -25,7 +26,7 @@ namespace Monaco
 		event TypedEventHandler<ICodeEditorPresenter, WebViewNavigationStartingEventArgs> NavigationStarting;
 
 		/// <summary>Occurs when the WebView has finished parsing the current HTML content.</summary>
-		event TypedEventHandler<ICodeEditorPresenter, WebViewDOMContentLoadedEventArgs> DOMContentLoaded;
+		event TypedEventHandler<ICodeEditorPresenter, CoreWebView2DOMContentLoadedEventArgs> DOMContentLoaded;
 
 		/// <summary>Occurs when the WebView has finished loading the current content or if navigation has failed.</summary>
 		event TypedEventHandler<ICodeEditorPresenter, WebViewNavigationCompletedEventArgs> NavigationCompleted;

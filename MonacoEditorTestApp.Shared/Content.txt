@@ -2,8 +2,9 @@
 	public static void Main(string[] args) {
 		Console.WriteLine(\"Hello, World!\");
 	}
-
-	/*
+    var potato = "#FF0000CC"
+    var other = "#00ff0088"
+	/* #FF0000CC
 	 * Things to Try:
 	 * - Hover over the word 'Hit'
 	 * - Hit F1 and Search for 'TestAction'

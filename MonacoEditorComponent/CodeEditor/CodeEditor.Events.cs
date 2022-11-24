@@ -6,9 +6,11 @@ using System.Reflection;
 using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
 using Windows.UI.Core;
-using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Input;
+using Windows.Web.UI;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
+using Microsoft.Web.WebView2.Core;
 
 namespace Monaco
 {
@@ -43,19 +45,24 @@ namespace Monaco
 
         private ThemeListener _themeListener;
 
-        private void WebView_DOMContentLoaded(ICodeEditorPresenter sender, WebViewDOMContentLoadedEventArgs args)
+        private void WebView_DOMContentLoaded(ICodeEditorPresenter sender, CoreWebView2DOMContentLoadedEventArgs args)
         {
             #if DEBUG
             Debug.WriteLine("DOM Content Loaded");
             #endif
-            _initialized = true;
+            
 
 #if __WASM__
             InitialiseWebObjects();
-
+            _initialized = true;
             _view.Launch();
 #endif
         }
+        // private async void WebView_DomContentLoaded(ICodeEditorPresenter sender,
+        //     WebViewControlDOMContentLoadedEventArgs args)
+        // {
+        //     
+        // }        
 
         private async void WebView_NavigationCompleted(ICodeEditorPresenter sender, WebViewNavigationCompletedEventArgs args)
         {
@@ -72,8 +79,6 @@ namespace Monaco
             {
                 _view.Focus(FocusState.Programmatic);
             }
-
-            Loaded?.Invoke(this, new RoutedEventArgs());
         }
 
         internal ParentAccessor _parentAccessor;

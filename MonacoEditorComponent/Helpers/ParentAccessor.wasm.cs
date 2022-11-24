@@ -9,6 +9,8 @@ using Windows.Foundation;
 using Uno.Foundation;
 using Windows.Data.Text;
 using Windows.Security.Cryptography.Certificates;
+using Microsoft.Extensions.Logging;
+using Uno.Extensions;
 
 namespace Monaco.Helpers
 {
@@ -101,7 +103,6 @@ namespace Monaco.Helpers
             if (Handle == null) return;
             var json = GetJsonValue(name);
             json = Santize(json);
-
             try
             {
                 var callbackMethod = $"returnValueCallback('{returnId}','{json}');";
@@ -156,6 +157,7 @@ namespace Monaco.Helpers
         public async void callEvent(string name, string promiseId, string parameter1, string parameter2)
         {
             if (Handle == null) return;
+            this.Log().LogInformation($"calling Event");
             //System.Diagnostics.Debug.WriteLine($"Calling event {name}");
 
             var parameters = new[] { Desanitize(parameter1), Desanitize(parameter2) }.Where(x => x != null).ToArray();
@@ -163,11 +165,11 @@ namespace Monaco.Helpers
             try
             {
               //  Console.WriteLine("Event Callback - start - "+ resultString);
-
+              this.Log().LogInformation($"in {resultString}");
                 var sanitized = Santize(resultString);
               //  Console.WriteLine("Santized for callback- " + sanitized);
 
-                var callbackMethod = $"asyncCallback('{promiseId}','{sanitized}');";
+                var callbackMethod = $"asyncCallback('{promiseId}','{resultString}');";
 
                 var result = WebAssemblyRuntime.InvokeJS(callbackMethod);
 

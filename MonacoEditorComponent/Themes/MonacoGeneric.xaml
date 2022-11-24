@@ -1,9 +1,10 @@
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:monaco="using:Monaco">
+    xmlns:monaco="using:Monaco"
+    xmlns:monaco1="clr-namespace:Monaco">
     
-    <Style TargetType="monaco:CodeEditor" >
+    <Style TargetType="monaco1:CodeEditor" >
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="monaco:CodeEditor">

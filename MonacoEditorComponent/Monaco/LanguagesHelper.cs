@@ -3,7 +3,10 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using Windows.Foundation;
+using Microsoft.Extensions.Logging;
+using Uno.Extensions;
 
 namespace Monaco
 {
@@ -85,11 +88,22 @@ namespace Monaco
         {
             if (_editor.TryGetTarget(out CodeEditor editor))
             {
-                editor._parentAccessor.RegisterEvent("ProvideColorPresentations" + languageId, async (args) =>
+                this.Log().LogInformation("2222: {LanguageId}", languageId);
+                this.Log().LogInformation("2222: {LanguageId}", editor.GetModel());
+                if (editor._parentAccessor == null)
                 {
+                    this.Log().LogInformation("Accessor is Null: {LanguageId}", editor.GetModel());
+                }
+                else
+                {
+                    this.Log().LogInformation("Accessor is OK: {LanguageId}", editor.GetModel());
+                }
+                editor?._parentAccessor?.RegisterEvent("ProvideColorPresentations" + languageId, async (args) =>
+                {
+                    this.Log().LogInformation("2222: {LanguageId}", languageId);
                     if (args != null && args.Length >= 1)
                     {
-                        var items = await provider.ProvideColorPresentationsAsync(editor.GetModel(), JsonConvert.DeserializeObject<ColorInformation>(args[0]));
+                        var items = provider.ProvideColorPresentations(JsonConvert.DeserializeObject<ColorInformation>(args[0]));
 
                         if (items != null)
                         {
@@ -99,13 +113,13 @@ namespace Monaco
 
                     return null;
                 });
-
-                editor._parentAccessor.RegisterEvent("ProvideDocumentColors" + languageId, async (args) =>
+                
+                editor._parentAccessor?.RegisterEvent("ProvideDocumentColors" + languageId, async (args) =>
                 {
-                    var items = await provider.ProvideDocumentColorsAsync(editor.GetModel());
-
+                    var items = await provider.ProvideDocumentColors();
                     if (items != null)
                     {
+                        this.Log().LogInformation( JsonConvert.SerializeObject(items));
                         return JsonConvert.SerializeObject(items);
                     }
 
@@ -124,7 +138,7 @@ namespace Monaco
             {
                 // Wrapper around CompletionItem Provider to Monaco editor.
                 // TODO: Add Incremented Id so that we can register multiple providers per language?
-                editor._parentAccessor.RegisterEvent("CompletionItemProvider" + languageId, async (args) =>
+                editor._parentAccessor?.RegisterEvent("CompletionItemProvider" + languageId, async (args) =>
                 {
                     if (args != null && args.Length >= 2)
                     {
@@ -142,7 +156,7 @@ namespace Monaco
                     return null;
                 });
 
-                editor._parentAccessor.RegisterEvent("CompletionItemRequested" + languageId, async (args) =>
+                editor._parentAccessor?.RegisterEvent("CompletionItemRequested" + languageId, async (args) =>
                 {
                     if (args != null && args.Length >= 2)
                     {
@@ -171,7 +185,7 @@ namespace Monaco
             {
                 // Wrapper around Hover Provider to Monaco editor.
                 // TODO: Add Incremented Id so that we can register multiple providers per language?
-                editor._parentAccessor.RegisterEvent("HoverProvider" + languageId, async (args) =>
+                editor._parentAccessor?.RegisterEvent("HoverProvider" + languageId, async (args) =>
                 {
                     System.Diagnostics.Debug.WriteLine($"Hover provider.......... {args!=null}");
                     if (args != null && args.Length >= 1)

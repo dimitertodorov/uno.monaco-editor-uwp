@@ -4,8 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.UI.Core;
-using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.Web.WebView2.Core;
 using Monaco.Extensions;
 using Uno.Foundation;
 using Uno.Foundation.Interop;
@@ -15,101 +16,105 @@ using Uno.UI.Runtime.WebAssembly;
 
 namespace Monaco
 {
-	[HtmlElement("div")]
+    [HtmlElement("div")]
     public partial class CodeEditorPresenter : Control, ICodeEditorPresenter, IJSObject
-	{
-		private static readonly string UNO_BOOTSTRAP_APP_BASE = global::System.Environment.GetEnvironmentVariable(nameof(UNO_BOOTSTRAP_APP_BASE));
-		private static readonly string UNO_BOOTSTRAP_WEBAPP_BASE_PATH = Environment.GetEnvironmentVariable(nameof(UNO_BOOTSTRAP_WEBAPP_BASE_PATH)) ?? "";
+    {
+        private static readonly string UNO_BOOTSTRAP_APP_BASE =
+            global::System.Environment.GetEnvironmentVariable(nameof(UNO_BOOTSTRAP_APP_BASE));
 
-		private readonly JSObjectHandle _handle;
+        private static readonly string UNO_BOOTSTRAP_WEBAPP_BASE_PATH =
+            Environment.GetEnvironmentVariable(nameof(UNO_BOOTSTRAP_WEBAPP_BASE_PATH)) ?? "";
 
-		/// <inheritdoc />
-		JSObjectHandle IJSObject.Handle => _handle;
+        private readonly JSObjectHandle _handle;
 
-		public CodeEditorPresenter()
-		{
-			//Background = new SolidColorBrush(Colors.Red);
-			_handle = JSObjectHandle.Create(this);
+        /// <inheritdoc />
+        JSObjectHandle IJSObject.Handle => _handle;
 
-			RaiseDOMContentLoaded();
+        public CodeEditorPresenter()
+        {
+            //Background = new SolidColorBrush(Colors.Red);
+            _handle = JSObjectHandle.Create(this);
 
-
-			//WebAssemblyRuntime.InvokeJSWithInterop($@"
-			//	console.log(""///////////////////////////////// subscribing to DOMContentLoaded - "" + {HtmlId});
-
-			//	var frame = Uno.UI.WindowManager.current.getView({HtmlId});
-				
-			//	console.log(""Got view"");
-
-			//	frame.addEventListener(""loadstart"", function(event) {{
-			//		var frameDoc = frame.contentDocument;
-			//		console.log(""/////////////////////////////////  Frame DOMContentLoaded, subscribing to document"" + frameDoc);
-			//		{this}.RaiseDOMContentLoaded();
-			//	}}); 
-			//	console.log(""Added load start"");
+            RaiseDOMContentLoaded();
 
 
+            //WebAssemblyRuntime.InvokeJSWithInterop($@"
+            //	console.log(""///////////////////////////////// subscribing to DOMContentLoaded - "" + {HtmlId});
 
-			//	frame.addEventListener(""load"", function(event) {{
-			//		var frameDoc = frame.contentDocument;
-			//		console.log(""/////////////////////////////////  Frame loaded, subscribing to document"" + frameDoc);
-			//		{this}.RaiseDOMContentLoaded();
-			//		//frameDoc.addEventListener(""DOMContentLoaded"", function(event) {{
-			//		//	console.log(""Raising RaiseDOMContentLoaded"");
-			//		//	{this}.RaiseDOMContentLoaded();
-			//		//}});
-			//	}}); 
+            //	var frame = Uno.UI.WindowManager.current.getView({HtmlId});
 
-			//	console.log(""Added load"");
+            //	console.log(""Got view"");
+
+            //	frame.addEventListener(""loadstart"", function(event) {{
+            //		var frameDoc = frame.contentDocument;
+            //		console.log(""/////////////////////////////////  Frame DOMContentLoaded, subscribing to document"" + frameDoc);
+            //		{this}.RaiseDOMContentLoaded();
+            //	}}); 
+            //	console.log(""Added load start"");
 
 
-			//	");
-		}
+            //	frame.addEventListener(""load"", function(event) {{
+            //		var frameDoc = frame.contentDocument;
+            //		console.log(""/////////////////////////////////  Frame loaded, subscribing to document"" + frameDoc);
+            //		{this}.RaiseDOMContentLoaded();
+            //		//frameDoc.addEventListener(""DOMContentLoaded"", function(event) {{
+            //		//	console.log(""Raising RaiseDOMContentLoaded"");
+            //		//	{this}.RaiseDOMContentLoaded();
+            //		//}});
+            //	}}); 
 
-		public void RaiseDOMContentLoaded()
-		{
-			if (this.Log().IsEnabled(Microsoft.Extensions.Logging.LogLevel.Debug))
-			{
-				this.Log().Debug($"RaiseDOMContentLoaded: Handle is null {_handle == null}");
-			}
+            //	console.log(""Added load"");
 
-			if (_handle == null) return;
 
-			if (this.Log().IsEnabled(Microsoft.Extensions.Logging.LogLevel.Debug))
-			{
-				this.Log().Debug($"Raising DOMContentLoaded");
-			}
+            //	");
+        }
 
-			Dispatcher.RunAsync(CoreDispatcherPriority.Low, () => DOMContentLoaded?.Invoke(null, new WebViewDOMContentLoadedEventArgs()));
-		}
+        public void RaiseDOMContentLoaded()
+        {
+            if (this.Log().IsEnabled(Microsoft.Extensions.Logging.LogLevel.Debug))
+            {
+                this.Log().Debug($"RaiseDOMContentLoaded: Handle is null {_handle == null}");
+            }
 
-		/// <inheritdoc />
-		public void AddWebAllowedObject(string name, object pObject)
-		{
-			if (pObject is IJSObject obj)
-			{
-				if (this.Log().IsEnabled(Microsoft.Extensions.Logging.LogLevel.Debug))
-				{
-					this.Log().Debug($"AddWebAllowedObject: Add Web Allowed Object - {name}");
-				}
+            if (_handle == null) return;
 
-				var method = obj.Handle.GetType().GetMethod("GetNativeInstance", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (this.Log().IsEnabled(Microsoft.Extensions.Logging.LogLevel.Debug))
+            {
+                this.Log().Debug($"Raising DOMContentLoaded");
+            }
 
-				if (this.Log().IsEnabled(Microsoft.Extensions.Logging.LogLevel.Debug))
-				{
-					this.Log().Debug($"AddWebAllowedObject: Method exists {method != null}");
-				}
+            Dispatcher.RunAsync(CoreDispatcherPriority.Low,
+                () => DOMContentLoaded?.Invoke(null, new CoreWebView2DOMContentLoadedEventArgs()));
+        }
 
-				var native  = method.Invoke(obj.Handle,new object[] { }) as string;
+        /// <inheritdoc />
+        public void AddWebAllowedObject(string name, object pObject)
+        {
+            if (pObject is IJSObject obj)
+            {
+                if (this.Log().IsEnabled(Microsoft.Extensions.Logging.LogLevel.Debug))
+                {
+                    this.Log().Debug($"AddWebAllowedObject: Add Web Allowed Object - {name}");
+                }
 
-				if (this.Log().IsEnabled(Microsoft.Extensions.Logging.LogLevel.Debug))
-				{
-					this.Log().Debug($"AddWebAllowedObject: Native handle {native}");
-				}
+                var method = obj.Handle.GetType().GetMethod("GetNativeInstance",
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+                if (this.Log().IsEnabled(Microsoft.Extensions.Logging.LogLevel.Debug))
+                {
+                    this.Log().Debug($"AddWebAllowedObject: Method exists {method != null}");
+                }
+
+                var native = method.Invoke(obj.Handle, new object[] { }) as string;
+
+                if (this.Log().IsEnabled(Microsoft.Extensions.Logging.LogLevel.Debug))
+                {
+                    this.Log().Debug($"AddWebAllowedObject: Native handle {native}");
+                }
 
                 var htmlId = this.GetHtmlId();
 
-				var script = $@"
+                var script = $@"
 					// console.log('starting');
 					var value = {native};
 					// console.log('v>' + value);
@@ -122,55 +127,57 @@ namespace Monaco
 					// console.log('ended');
 					";
 
-				if (this.Log().IsEnabled(Microsoft.Extensions.Logging.LogLevel.Debug))
-				{
-					this.Log().Debug($"AddWebAllowedObject: {script}");
-				}
+                if (this.Log().IsEnabled(Microsoft.Extensions.Logging.LogLevel.Debug))
+                {
+                    this.Log().Debug($"AddWebAllowedObject: {script}");
+                }
 
                 try
                 {
                     WebAssemblyRuntime.InvokeJS(script);
                 }
                 catch (Exception e)
-				{
-					if (this.Log().IsEnabled(Microsoft.Extensions.Logging.LogLevel.Error))
-					{
-						this.Log().Error($"AddWebAllowedObject failed", e);
-					}
+                {
+                    if (this.Log().IsEnabled(Microsoft.Extensions.Logging.LogLevel.Error))
+                    {
+                        this.Log().Error($"AddWebAllowedObject failed", e);
+                    }
                 }
 
-				if (this.Log().IsEnabled(Microsoft.Extensions.Logging.LogLevel.Debug))
-				{
-					this.Log().Debug($"Add WebAllowed Compeleted");
-				}
-			}
-			else
-			{
-				if (this.Log().IsEnabled(Microsoft.Extensions.Logging.LogLevel.Error))
-				{
-					this.Log().Error($"AddWebAllowedObject: {name} is not a JSObject");
-				}
-			}
-		}
+                if (this.Log().IsEnabled(Microsoft.Extensions.Logging.LogLevel.Debug))
+                {
+                    this.Log().Debug($"Add WebAllowed Compeleted");
+                }
+            }
+            else
+            {
+                if (this.Log().IsEnabled(Microsoft.Extensions.Logging.LogLevel.Error))
+                {
+                    this.Log().Error($"AddWebAllowedObject: {name} is not a JSObject");
+                }
+            }
+        }
 
-		/// <inheritdoc />
-		public event TypedEventHandler<ICodeEditorPresenter, WebViewNewWindowRequestedEventArgs> NewWindowRequested; // ignored for now (external navigation)
+        /// <inheritdoc />
+        public event TypedEventHandler<ICodeEditorPresenter, WebViewNewWindowRequestedEventArgs>
+            NewWindowRequested; // ignored for now (external navigation)
 
-		/// <inheritdoc />
-		public event TypedEventHandler<ICodeEditorPresenter, WebViewNavigationStartingEventArgs> NavigationStarting;
+        /// <inheritdoc />
+        public event TypedEventHandler<ICodeEditorPresenter, WebViewNavigationStartingEventArgs> NavigationStarting;
 
-		/// <inheritdoc />
-		public event TypedEventHandler<ICodeEditorPresenter, WebViewDOMContentLoadedEventArgs> DOMContentLoaded;
+        /// <inheritdoc />
+        public event TypedEventHandler<ICodeEditorPresenter, CoreWebView2DOMContentLoadedEventArgs> DOMContentLoaded;
 
-		/// <inheritdoc />
-		public event TypedEventHandler<ICodeEditorPresenter, WebViewNavigationCompletedEventArgs> NavigationCompleted; // ignored for now (only focus the editor)
+        /// <inheritdoc />
+        public event TypedEventHandler<ICodeEditorPresenter, WebViewNavigationCompletedEventArgs>
+            NavigationCompleted; // ignored for now (only focus the editor)
 
-		/// <inheritdoc />
-		public global::System.Uri Source
-		{
-			get => new global::System.Uri(this.GetHtmlAttribute("src"));
-			set
-			{
+        /// <inheritdoc />
+        public global::System.Uri Source
+        {
+            get => new global::System.Uri(this.GetHtmlAttribute("src"));
+            set
+            {
                 //var path = Environment.GetEnvironmentVariable("UNO_BOOTSTRAP_APP_BASE");
                 //var target = $"/{path}/MonacoCodeEditor.html";
                 //var target = (value.IsAbsoluteUri && value.IsFile)
@@ -178,86 +185,138 @@ namespace Monaco
                 //	: value.ToString();
 
                 string target;
-				if (value.IsAbsoluteUri)
-				{
-					if(value.Scheme=="file")
-					{
-						// Local files are assumed as coming from the remoter server
-						target = UNO_BOOTSTRAP_APP_BASE == null ? value.PathAndQuery : UNO_BOOTSTRAP_WEBAPP_BASE_PATH + UNO_BOOTSTRAP_APP_BASE + value.PathAndQuery;
-					}
+                if (value.IsAbsoluteUri)
+                {
+                    if (value.Scheme == "file")
+                    {
+                        // Local files are assumed as coming from the remoter server
+                        target = UNO_BOOTSTRAP_APP_BASE == null
+                            ? value.PathAndQuery
+                            : UNO_BOOTSTRAP_WEBAPP_BASE_PATH + UNO_BOOTSTRAP_APP_BASE + value.PathAndQuery;
+                    }
                     else
                     {
-						target = value.AbsoluteUri;
+                        target = value.AbsoluteUri;
+                    }
+                }
+                else
+                {
+                    target = UNO_BOOTSTRAP_APP_BASE == null
+                        ? value.OriginalString
+                        : UNO_BOOTSTRAP_WEBAPP_BASE_PATH + UNO_BOOTSTRAP_APP_BASE + "/" + value.OriginalString;
+                }
 
-					}
+                if (this.Log().IsEnabled(Microsoft.Extensions.Logging.LogLevel.Debug))
+                {
+                    this.Log().Debug($"Loading {target} (Nav is null {NavigationStarting == null})");
+                }
 
-				}
-				else
-				{
-					target = UNO_BOOTSTRAP_APP_BASE == null
-						? value.OriginalString
-						: UNO_BOOTSTRAP_WEBAPP_BASE_PATH + UNO_BOOTSTRAP_APP_BASE + "/" + value.OriginalString;
-				}
+                this.SetHtmlAttribute("src", target);
 
-				if (this.Log().IsEnabled(Microsoft.Extensions.Logging.LogLevel.Debug))
-				{
-					this.Log().Debug($"Loading {target} (Nav is null {NavigationStarting == null})");
-				}
-
-				this.SetHtmlAttribute("src", target);
-
-				//NavigationStarting?.Invoke(this, new WebViewNavigationStartingEventArgs());
-				Dispatcher.RunAsync(CoreDispatcherPriority.Low, () => NavigationStarting?.Invoke(this, new WebViewNavigationStartingEventArgs()));
-			}
-		}
-
-		/// <inheritdoc />
-		public IAsyncOperation<string> InvokeScriptAsync(string scriptName, IEnumerable<string> arguments)
-		{
-			var script = $@"(function() {{
+                //NavigationStarting?.Invoke(this, new WebViewNavigationStartingEventArgs());
+                Dispatcher.RunAsync(CoreDispatcherPriority.Low,
+                    () => NavigationStarting?.Invoke(this, new WebViewNavigationStartingEventArgs()));
+            }
+        }
+        public string InvokeScript(string scriptName, IEnumerable<string> arguments)
+        {
+            var random = new Random();
+            var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            var func_sig = new string(Enumerable.Repeat(chars, 10)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
+            var funName = $"__fun{func_sig}";
+            var script = $@"(function() {{
+				var functionName = 'd' + Math.floor(Math.random()*1000001);
 				try {{
-					window.__evalMethod = function() {{ {arguments.Single()} }};
-					
-					return window.eval(""__evalMethod()"") || """";
+					window.{funName} = function() {{ {arguments.Single()} }};
+					return window.eval(""{funName}()"") || """";
 				}}
 				catch(err){{
 					Debug.log(err);
 				}}
 				finally {{
-					window.__evalMethod = null;
+					window.{funName} = null;
 				}}
 			}})()";
 
-			if (this.Log().IsEnabled(Microsoft.Extensions.Logging.LogLevel.Debug))
-			{
-				this.Log().Debug("Invoke Script: " + script);
-			}
+            if (this.Log().IsEnabled(Microsoft.Extensions.Logging.LogLevel.Debug))
+            {
+                this.Log().Debug("Invoke Script: " + script);
+            }
 
-			try
-			{
-				var result = this.ExecuteJavascript(script);
+            try
+            {
+	            var result = this.ExecuteJavascript(script);
 
-				if (this.Log().IsEnabled(Microsoft.Extensions.Logging.LogLevel.Debug))
-				{
-					this.Log().Debug($"Invoke Script result: {result}");
-				}
+                if (this.Log().IsEnabled(Microsoft.Extensions.Logging.LogLevel.Debug))
+                {
+                    this.Log().Debug($"Invoke Script result: {result}");
+                }
 
-				return Task.FromResult(result).AsAsyncOperation();
-			}
-			catch (Exception e)
-			{
-				if (this.Log().IsEnabled(Microsoft.Extensions.Logging.LogLevel.Error))
-				{
-					this.Log().Error("Invoke Script failed", e);
-				}
+                return result;
+            }
+            catch (Exception e)
+            {
+                if (this.Log().IsEnabled(Microsoft.Extensions.Logging.LogLevel.Error))
+                {
+                    this.Log().Error("Invoke Script failed", e);
+                }
 
-				return Task.FromResult("").AsAsyncOperation();
-			}
-		}
+                return "";
+            }
+        }
 
-		public void Launch()
-		{
-			string javascript = $@"
+        /// <inheritdoc />
+        public IAsyncOperation<string> InvokeScriptAsync(string scriptName, IEnumerable<string> arguments)
+        {
+            var random = new Random();
+            var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            var func_sig = new string(Enumerable.Repeat(chars, 10)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
+            var funName = $"__fun{func_sig}";
+            var script = $@"return (function() {{
+				try {{
+					window.{funName} = function() {{ {arguments.Single()} }};
+					return window.eval(""{funName}()"") || """";
+				}}
+				catch(err){{
+					Debug.log(err);
+				}}
+				finally {{
+					window.{funName} = null;
+				}}
+			}})()";
+
+            if (this.Log().IsEnabled(Microsoft.Extensions.Logging.LogLevel.Debug))
+            {
+                this.Log().Debug("Invoke Script: " + script);
+            }
+
+            try
+            {
+                var result = this.ExecuteJavascript(script);
+
+                if (this.Log().IsEnabled(Microsoft.Extensions.Logging.LogLevel.Debug))
+                {
+                    this.Log().Debug($"Invoke Script result: {result}");
+                }
+
+                return Task.FromResult(result).AsAsyncOperation();
+            }
+            catch (Exception e)
+            {
+                if (this.Log().IsEnabled(Microsoft.Extensions.Logging.LogLevel.Error))
+                {
+                    this.Log().Error("Invoke Script failed", e);
+                }
+
+                return Task.FromResult("").AsAsyncOperation();
+            }
+        }
+
+        public void Launch()
+        {
+            string javascript = $@"
         (function(){{
 
 			Debug.log(""Create dynamic style element"");
@@ -277,7 +336,7 @@ namespace Monaco
             var modifingSelection = false; // Supress updates to selection when making edits.
 			window.modifyingSelection=false;
 
-			require.config({{ paths: {{ 'vs': '{UNO_BOOTSTRAP_WEBAPP_BASE_PATH}{UNO_BOOTSTRAP_APP_BASE}/monaco-editor/min/vs' }} }});
+			require.config({{ paths: {{ 'vs': '{UNO_BOOTSTRAP_WEBAPP_BASE_PATH}{UNO_BOOTSTRAP_APP_BASE}/monaco-editor/dev/vs' }} }});
 			require(['vs/editor/editor.main'], function () {{
 
 
@@ -306,8 +365,9 @@ namespace Monaco
 	            // Listen for Content Changes
 				Debug.log(""Listening for changes in the editor model - "" + (!model));
 	            model.onDidChangeContent((event) => {{
+
 	                   Parent.setValue(""Text"", stringifyForMarshalling(model.getValue()));
-	                    //console.log(""buffers: "" + JSON.stringify(model._buffer._pieceTree._buffers));
+	                    //console.log(""buffers: "" + model.getValue());
 	                    //console.log(""commandMgr: "" + JSON.stringify(model._commandManager));
 	                    //console.log(""viewState:"" + JSON.stringify(editor.saveViewState()));
 	                }});
@@ -362,5 +422,5 @@ namespace Monaco
 
             //Dispatcher.RunAsync(CoreDispatcherPriority.Low, () => NavigationCompleted?.Invoke(this, new WebViewNavigationCompletedEventArgs()));
         }
-	}
+    }
 }

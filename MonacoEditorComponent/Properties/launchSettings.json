@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "MonacoEditorComponent": {
+      "commandName": "Project"
+    },
+    "Profile 1": {
+      "commandName": "Executable"
+    }
+  }
+}
